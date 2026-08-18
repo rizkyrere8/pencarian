@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
     --ink:#152026;
@@ -287,14 +288,110 @@
     margin:-4px 0 10px;
     min-height:16px;
   }
+
+  /* Login gate */
+  #loginGate{
+    position:fixed;inset:0;
+    background:var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    padding:20px;
+    z-index:100;
+  }
+  .login-box{
+    max-width:380px;
+    width:100%;
+  }
+  .login-box .eyebrow{margin-bottom:4px;}
+  .login-box h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:26px;
+    margin:2px 0 24px;
+  }
+  .login-box label{
+    font-size:12px;
+    color:var(--muted);
+    display:block;
+    margin-bottom:6px;
+    margin-top:14px;
+  }
+  .login-box input{
+    width:100%;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:12px 14px;
+    color:var(--paper);
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    outline:none;
+  }
+  .login-box input:focus{border-color:var(--gold);}
+  .login-box .btn-primary{width:100%;margin-top:22px;padding:13px;}
+  .login-toggle{
+    margin-top:16px;
+    font-size:13px;
+    color:var(--muted);
+    text-align:center;
+  }
+  .login-toggle button{
+    background:none;border:none;
+    color:var(--gold);
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    cursor:pointer;
+    padding:0;
+  }
+  .login-err{
+    color:var(--danger);
+    font-size:12.5px;
+    min-height:16px;
+    margin-top:12px;
+  }
+  .login-note{
+    color:var(--muted);
+    font-size:12px;
+    margin-top:10px;
+    line-height:1.5;
+  }
+  .logout-btn{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--muted);
+    background:none;
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:6px 12px;
+    cursor:pointer;
+  }
+  .logout-btn:hover{color:var(--paper);border-color:var(--muted);}
 </style>
 </head>
 <body>
+
+<div id="loginGate">
+  <div class="login-box">
+    <div class="eyebrow">Direktori · Akses Terbatas</div>
+    <h1 id="loginTitle">Masuk untuk melanjutkan</h1>
+    <label for="loginEmail">Email</label>
+    <input type="text" id="loginEmail" placeholder="nama@email.com" autocomplete="username">
+    <label for="loginPassword">Kata sandi</label>
+    <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+    <div class="login-err" id="loginErr"></div>
+    <button class="btn-primary" id="loginSubmitBtn">Masuk</button>
+    <div class="login-toggle">
+      <span id="toggleText">Belum punya akun?</span>
+      <button id="toggleModeBtn">Daftar di sini</button>
+    </div>
+    <div class="login-note" id="loginNote"></div>
+  </div>
+</div>
 
 <div class="wrap">
   <header>
     <div>
       <div class="eyebrow">Direktori · Google Sheets</div>
+
       <h1>Daftar Tautan</h1>
     </div>
     <div class="top-row">
@@ -308,6 +405,7 @@
       <button class="icon-btn" id="settingsBtn" title="Atur sumber data">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </button>
+      <button class="logout-btn" id="logoutBtn" title="Keluar">Keluar</button>
     </div>
     <div class="meta-row">
       <span id="countLabel"></span>
@@ -339,6 +437,79 @@
 </div>
 
 <script>
+const SUPABASE_URL = 'https://ucnquzslbarvhctzzokx.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjbnF1enNsYmFydmhjdHp6b2t4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4NTE1NTAsImV4cCI6MjEwMjQyNzU1MH0.V3D2YeVe3H_uR5zj3IOOMy-ZrlkZNLnm37YonTeykEs';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let authMode = 'login'; // 'login' | 'signup'
+
+function setAuthMode(mode){
+  authMode = mode;
+  document.getElementById('loginErr').textContent = '';
+  document.getElementById('loginNote').textContent = '';
+  if(mode === 'signup'){
+    document.getElementById('loginTitle').textContent = 'Buat akun baru';
+    document.getElementById('loginSubmitBtn').textContent = 'Daftar';
+    document.getElementById('toggleText').textContent = 'Sudah punya akun?';
+    document.getElementById('toggleModeBtn').textContent = 'Masuk di sini';
+  }else{
+    document.getElementById('loginTitle').textContent = 'Masuk untuk melanjutkan';
+    document.getElementById('loginSubmitBtn').textContent = 'Masuk';
+    document.getElementById('toggleText').textContent = 'Belum punya akun?';
+    document.getElementById('toggleModeBtn').textContent = 'Daftar di sini';
+  }
+}
+
+async function handleAuthSubmit(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginErr');
+  const noteEl = document.getElementById('loginNote');
+  errEl.textContent = '';
+  noteEl.textContent = '';
+  if(!email || !password){
+    errEl.textContent = 'Isi email dan kata sandi terlebih dahulu.';
+    return;
+  }
+  const btn = document.getElementById('loginSubmitBtn');
+  btn.disabled = true;
+  try{
+    if(authMode === 'signup'){
+      const { error } = await sb.auth.signUp({ email, password });
+      if(error) throw error;
+      noteEl.textContent = 'Akun dibuat. Jika diminta verifikasi, cek email kamu lalu kembali ke sini dan masuk.';
+      setAuthMode('login');
+    }else{
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if(error) throw error;
+      showApp();
+    }
+  }catch(err){
+    errEl.textContent = err.message || 'Terjadi kesalahan, coba lagi.';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+function showApp(){
+  document.getElementById('loginGate').style.display = 'none';
+  initApp();
+}
+
+function showLoginGate(){
+  document.getElementById('loginGate').style.display = 'flex';
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPassword').value = '';
+}
+
+document.getElementById('loginSubmitBtn').addEventListener('click', handleAuthSubmit);
+document.getElementById('loginPassword').addEventListener('keydown', e => { if(e.key === 'Enter') handleAuthSubmit(); });
+document.getElementById('toggleModeBtn').addEventListener('click', () => setAuthMode(authMode === 'login' ? 'signup' : 'login'));
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await sb.auth.signOut();
+  showLoginGate();
+});
+
 const STORAGE_KEY = 'sheet-csv-url';
 const DEFAULT_CSV_URL = 'https://docs.google.com/spreadsheets/d/1EGTRiZp58yiy-PlBx8PhADLJfA1R4e8YjAvCp-GUk9M/gviz/tq?tqx=out:csv&gid=0';
 const FALLBACK_LINKS = [
@@ -544,7 +715,7 @@ document.getElementById('refreshBtn').addEventListener('click', async () => {
   setTimeout(() => btn.classList.remove('spin'), 500);
 });
 
-(async function init(){
+async function initApp(){
   try{
     let r = await storage.get(STORAGE_KEY, false);
     const isOldDefault = r && r.value && r.value.includes('2PACX-1vRTBjrk47KzG9Ebif6SVWse5xJONEYMl8nTI0839QgyO5UBP3gPo');
@@ -565,7 +736,23 @@ document.getElementById('refreshBtn').addEventListener('click', async () => {
       <button class="link-btn" id="startSetupBtn">Hubungkan Google Sheet</button>
     </div>`);
   document.getElementById('startSetupBtn').onclick = () => openSetup();
+}
+
+// Cek sesi login yang sudah ada saat halaman dibuka
+(async function checkSession(){
+  const { data } = await sb.auth.getSession();
+  if(data && data.session){
+    showApp();
+  }else{
+    showLoginGate();
+  }
 })();
+
+sb.auth.onAuthStateChange((event, session) => {
+  if(event === 'SIGNED_OUT'){
+    showLoginGate();
+  }
+});
 </script>
 </body>
 </html>
