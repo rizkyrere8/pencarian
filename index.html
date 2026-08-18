@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Direktori Tautan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  :root{
+    --ink:#152026;
+    --panel:#1D2C33;
+    --panel-hover:#243943;
+    --line:rgba(237,234,224,0.10);
+    --paper:#EDEAE0;
+    --muted:#8FA3AC;
+    --gold:#C9A227;
+    --gold-soft:rgba(201,162,39,0.16);
+    --danger:#D97757;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:760px;
+    margin:0 auto;
+    padding:48px 20px 80px;
+  }
+  header{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    margin-bottom:28px;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--gold);
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:32px;
+    margin:2px 0 0;
+    letter-spacing:-0.01em;
+  }
+  .top-row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .search-box{
+    flex:1;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:12px 18px;
+    transition:border-color .15s ease;
+  }
+  .search-box:focus-within{
+    border-color:var(--gold);
+  }
+  .search-box svg{flex-shrink:0;opacity:0.6;}
+  .search-box input{
+    flex:1;
+    background:none;
+    border:none;
+    outline:none;
+    color:var(--paper);
+    font-family:'Inter',sans-serif;
+    font-size:14.5px;
+  }
+  .search-box input::placeholder{color:var(--muted);}
+  .icon-btn{
+    width:44px;
+    height:44px;
+    flex-shrink:0;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--paper);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:background .15s ease, transform .15s ease;
+  }
+  .icon-btn:hover{background:var(--panel-hover);}
+  .icon-btn:active{transform:scale(0.94);}
+  .icon-btn.spin svg{animation:spin 0.9s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .meta-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:12.5px;
+    color:var(--muted);
+    padding:0 4px;
+  }
+  .meta-row button{
+    background:none;
+    border:none;
+    color:var(--gold);
+    font-family:'Inter',sans-serif;
+    font-size:12.5px;
+    cursor:pointer;
+    padding:0;
+  }
+
+  .list{
+    display:flex;
+    flex-direction:column;
+    margin-top:18px;
+  }
+  .card{
+    display:flex;
+    gap:14px;
+    padding:18px 14px;
+    border-bottom:1px solid var(--line);
+    text-decoration:none;
+    color:inherit;
+    cursor:pointer;
+    border-radius:10px;
+    transition:background .12s ease;
+  }
+  .card:hover{background:var(--panel);}
+  .card:hover .title{color:var(--gold);}
+  .favicon{
+    width:26px;
+    height:26px;
+    border-radius:6px;
+    flex-shrink:0;
+    margin-top:3px;
+    background:var(--panel);
+    object-fit:contain;
+  }
+  .card-body{min-width:0;}
+  .domain{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;
+    color:var(--muted);
+    letter-spacing:0.01em;
+  }
+  .title{
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:16px;
+    margin:2px 0 4px;
+    color:var(--paper);
+    transition:color .12s ease;
+  }
+  .desc{
+    font-size:13.5px;
+    color:var(--muted);
+    line-height:1.5;
+    margin:0;
+    overflow:hidden;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+  }
+
+  .state{
+    text-align:center;
+    padding:60px 20px;
+    color:var(--muted);
+  }
+  .state.error{color:var(--danger);}
+  .state h3{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    color:var(--paper);
+    font-size:19px;
+    margin:14px 0 6px;
+  }
+  .state p{font-size:13.5px;line-height:1.6;max-width:420px;margin:0 auto;}
+
+  .link-btn{
+    display:inline-block;
+    margin-top:18px;
+    background:var(--gold-soft);
+    color:var(--gold);
+    border:1px solid var(--gold);
+    padding:10px 20px;
+    border-radius:999px;
+    font-family:'Inter',sans-serif;
+    font-size:13.5px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .link-btn:hover{background:var(--gold);color:var(--ink);}
+
+  /* Setup modal */
+  .overlay{
+    position:fixed;inset:0;
+    background:rgba(10,15,18,0.72);
+    display:flex;align-items:center;justify-content:center;
+    padding:20px;
+    z-index:50;
+  }
+  .modal{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    max-width:480px;
+    width:100%;
+    padding:28px;
+  }
+  .modal .eyebrow{margin-bottom:4px;}
+  .modal h2{
+    font-family:'Fraunces',serif;
+    font-size:22px;
+    margin:0 0 14px;
+  }
+  .modal ol{
+    font-size:13.5px;
+    color:var(--muted);
+    line-height:1.7;
+    padding-left:20px;
+    margin:0 0 18px;
+  }
+  .modal ol b{color:var(--paper);}
+  .modal label{
+    font-size:12px;
+    color:var(--muted);
+    display:block;
+    margin-bottom:6px;
+  }
+  .modal input[type=text]{
+    width:100%;
+    background:var(--ink);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:11px 13px;
+    color:var(--paper);
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    outline:none;
+    margin-bottom:10px;
+  }
+  .modal input[type=text]:focus{border-color:var(--gold);}
+  .modal .row-btns{
+    display:flex;
+    gap:10px;
+    margin-top:6px;
+  }
+  .btn-primary{
+    flex:1;
+    background:var(--gold);
+    color:var(--ink);
+    border:none;
+    border-radius:999px;
+    padding:11px 18px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    cursor:pointer;
+  }
+  .btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
+  .btn-ghost{
+    background:none;
+    border:1px solid var(--line);
+    color:var(--muted);
+    border-radius:999px;
+    padding:11px 18px;
+    font-family:'Inter',sans-serif;
+    font-size:13.5px;
+    cursor:pointer;
+  }
+  .modal-err{
+    color:var(--danger);
+    font-size:12.5px;
+    margin:-4px 0 10px;
+    min-height:16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Direktori · Google Sheets</div>
+      <h1>Daftar Tautan</h1>
+    </div>
+    <div class="top-row">
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="searchInput" type="text" placeholder="Cari tautan...">
+      </div>
+      <button class="icon-btn" id="refreshBtn" title="Muat ulang data">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      </button>
+      <button class="icon-btn" id="settingsBtn" title="Atur sumber data">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+    <div class="meta-row">
+      <span id="countLabel"></span>
+      <button id="changeSourceBtn" style="display:none;">Ganti sumber data</button>
+    </div>
+  </header>
+
+  <div id="listArea" class="list"></div>
+</div>
+
+<div id="setupOverlay" class="overlay" style="display:none;">
+  <div class="modal">
+    <div class="eyebrow">Langkah pertama</div>
+    <h2>Hubungkan Google Sheet</h2>
+    <ol>
+      <li>Buat sheet dengan 3 kolom: <b>Judul</b>, <b>Link</b>, <b>Deskripsi</b> (deskripsi boleh kosong).</li>
+      <li>Klik <b>File → Bagikan → Publikasikan ke web</b>.</li>
+      <li>Pilih sheet yang sesuai, ubah format ke <b>CSV</b>, lalu klik <b>Publikasikan</b>.</li>
+      <li>Salin tautan yang muncul dan tempel di bawah ini.</li>
+    </ol>
+    <label for="csvUrlInput">URL CSV hasil publikasi</label>
+    <input type="text" id="csvUrlInput" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv">
+    <div class="modal-err" id="modalErr"></div>
+    <div class="row-btns">
+      <button class="btn-ghost" id="modalCancel">Batal</button>
+      <button class="btn-primary" id="modalSave">Simpan &amp; muat</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'sheet-csv-url';
+let allLinks = [];
+
+function getDomain(url){
+  try{
+    const u = new URL(url.trim());
+    return u.hostname.replace(/^www\./,'');
+  }catch(e){ return url; }
+}
+
+function faviconUrl(url){
+  const domain = getDomain(url);
+  return 'https://www.google.com/s2/favicons?sz=64&domain=' + encodeURIComponent(domain);
+}
+
+function normalizeUrl(url){
+  const trimmed = (url||'').trim();
+  if(!trimmed) return '';
+  if(!/^https?:\/\//i.test(trimmed)) return 'https://' + trimmed;
+  return trimmed;
+}
+
+function findKey(row, candidates){
+  const keys = Object.keys(row);
+  for(const c of candidates){
+    const found = keys.find(k => k.trim().toLowerCase() === c);
+    if(found) return found;
+  }
+  return null;
+}
+
+function renderList(links){
+  const area = document.getElementById('listArea');
+  const countLabel = document.getElementById('countLabel');
+  if(links.length === 0){
+    area.innerHTML = '<div class="state"><h3>Tidak ada tautan</h3><p>Coba kata kunci lain, atau tambahkan baris baru di Google Sheet lalu muat ulang.</p></div>';
+    countLabel.textContent = '';
+    return;
+  }
+  countLabel.textContent = links.length + ' tautan';
+  area.innerHTML = links.map(l => `
+    <a class="card" href="${l.url}" target="_blank" rel="noopener noreferrer">
+      <img class="favicon" src="${faviconUrl(l.url)}" alt="" onerror="this.style.visibility='hidden'">
+      <div class="card-body">
+        <div class="domain">${getDomain(l.url)}</div>
+        <div class="title">${l.title}</div>
+        ${l.desc ? `<p class="desc">${l.desc}</p>` : ''}
+      </div>
+    </a>
+  `).join('');
+}
+
+function applySearch(){
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  if(!q){ renderList(allLinks); return; }
+  const filtered = allLinks.filter(l =>
+    l.title.toLowerCase().includes(q) ||
+    (l.desc||'').toLowerCase().includes(q) ||
+    getDomain(l.url).toLowerCase().includes(q)
+  );
+  renderList(filtered);
+}
+
+function showState(html){
+  document.getElementById('listArea').innerHTML = html;
+}
+
+async function loadFromSheet(csvUrl){
+  showState(`
+    <div class="state">
+      <h3>Memuat data...</h3>
+      <p>Mengambil daftar tautan dari Google Sheets.</p>
+    </div>`);
+  document.getElementById('countLabel').textContent = '';
+
+  try{
+    const res = await fetch(csvUrl);
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+    if(parsed.errors && parsed.errors.length && (!parsed.data || parsed.data.length === 0)){
+      throw new Error('Gagal membaca format CSV');
+    }
+    const rows = parsed.data;
+    if(rows.length === 0) throw new Error('Sheet kosong');
+
+    const sample = rows[0];
+    const titleKey = findKey(sample, ['judul','title','nama']);
+    const urlKey = findKey(sample, ['link','url','tautan']);
+    const descKey = findKey(sample, ['deskripsi','description','keterangan']);
+
+    if(!urlKey){
+      throw new Error('Kolom "Link" tidak ditemukan. Pastikan ada kolom bernama Judul, Link, dan Deskripsi.');
+    }
+
+    allLinks = rows
+      .map(r => ({
+        title: (titleKey ? r[titleKey] : '') || getDomain(normalizeUrl(r[urlKey]||'')) || 'Tanpa judul',
+        url: normalizeUrl(r[urlKey] || ''),
+        desc: descKey ? (r[descKey]||'').trim() : ''
+      }))
+      .filter(l => l.url);
+
+    if(allLinks.length === 0){
+      throw new Error('Tidak ada baris dengan Link yang valid.');
+    }
+
+    document.getElementById('changeSourceBtn').style.display = 'inline';
+    renderList(allLinks);
+  }catch(err){
+    document.getElementById('changeSourceBtn').style.display = 'inline';
+    showState(`
+      <div class="state error">
+        <h3>Gagal memuat data</h3>
+        <p>${err.message || 'Terjadi kesalahan saat mengambil data dari Google Sheets.'} Pastikan sheet sudah dipublikasikan ke web sebagai CSV dan bisa diakses publik.</p>
+        <button class="link-btn" id="retrySettingsBtn">Periksa pengaturan</button>
+      </div>`);
+    const retryBtn = document.getElementById('retrySettingsBtn');
+    if(retryBtn) retryBtn.onclick = openSetup;
+  }
+}
+
+function openSetup(prefill){
+  document.getElementById('csvUrlInput').value = prefill || '';
+  document.getElementById('modalErr').textContent = '';
+  document.getElementById('setupOverlay').style.display = 'flex';
+}
+function closeSetup(){
+  document.getElementById('setupOverlay').style.display = 'none';
+}
+
+async function saveAndLoad(){
+  const url = document.getElementById('csvUrlInput').value.trim();
+  const errEl = document.getElementById('modalErr');
+  if(!url){
+    errEl.textContent = 'Tempel URL CSV terlebih dahulu.';
+    return;
+  }
+  if(!/^https:\/\/docs\.google\.com\/spreadsheets\/.*output=csv/i.test(url) && !/\.csv($|\?)/i.test(url)){
+    errEl.textContent = 'URL tampaknya bukan tautan CSV. Pastikan formatnya diubah ke CSV saat publikasi.';
+    return;
+  }
+  errEl.textContent = '';
+  try{
+    const result = await window.storage.set(STORAGE_KEY, url, false);
+    if(!result){ errEl.textContent = 'Gagal menyimpan pengaturan, coba lagi.'; return; }
+  }catch(e){
+    errEl.textContent = 'Gagal menyimpan pengaturan, coba lagi.';
+    return;
+  }
+  closeSetup();
+  loadFromSheet(url);
+}
+
+document.getElementById('searchInput').addEventListener('input', applySearch);
+document.getElementById('settingsBtn').addEventListener('click', async () => {
+  let current = '';
+  try{
+    const r = await window.storage.get(STORAGE_KEY, false);
+    if(r) current = r.value;
+  }catch(e){}
+  openSetup(current);
+});
+document.getElementById('changeSourceBtn').addEventListener('click', () => document.getElementById('settingsBtn').click());
+document.getElementById('modalCancel').addEventListener('click', closeSetup);
+document.getElementById('modalSave').addEventListener('click', saveAndLoad);
+document.getElementById('refreshBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spin');
+  try{
+    const r = await window.storage.get(STORAGE_KEY, false);
+    if(r) await loadFromSheet(r.value);
+  }catch(e){}
+  setTimeout(() => btn.classList.remove('spin'), 500);
+});
+
+(async function init(){
+  try{
+    const r = await window.storage.get(STORAGE_KEY, false);
+    if(r && r.value){
+      document.getElementById('changeSourceBtn').style.display = 'inline';
+      loadFromSheet(r.value);
+      return;
+    }
+  }catch(e){}
+  showState(`
+    <div class="state">
+      <h3>Belum ada sumber data</h3>
+      <p>Hubungkan Google Sheet berisi daftar tautan untuk mulai menampilkan direktori ini.</p>
+      <button class="link-btn" id="startSetupBtn">Hubungkan Google Sheet</button>
+    </div>`);
+  document.getElementById('startSetupBtn').onclick = () => openSetup();
+})();
+</script>
+</body>
+</html>
