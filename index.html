@@ -340,7 +340,23 @@
 
 <script>
 const STORAGE_KEY = 'sheet-csv-url';
+const DEFAULT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRTBjrk47KzG9Ebif6SVWse5xJONEYMl8nTI0839QgyO5UBP3gPo_KSlYyGfqhjXRYV8fPq82qL1toj/pub?output=csv';
 let allLinks = [];
+
+const storage = {
+  get(key){
+    try{
+      const v = localStorage.getItem(key);
+      return Promise.resolve(v === null ? null : { key, value: v });
+    }catch(e){ return Promise.resolve(null); }
+  },
+  set(key, value){
+    try{
+      localStorage.setItem(key, value);
+      return Promise.resolve({ key, value });
+    }catch(e){ return Promise.resolve(null); }
+  }
+};
 
 function getDomain(url){
   try{
@@ -483,7 +499,7 @@ async function saveAndLoad(){
   }
   errEl.textContent = '';
   try{
-    const result = await window.storage.set(STORAGE_KEY, url, false);
+    const result = await storage.set(STORAGE_KEY, url, false);
     if(!result){ errEl.textContent = 'Gagal menyimpan pengaturan, coba lagi.'; return; }
   }catch(e){
     errEl.textContent = 'Gagal menyimpan pengaturan, coba lagi.';
@@ -497,7 +513,7 @@ document.getElementById('searchInput').addEventListener('input', applySearch);
 document.getElementById('settingsBtn').addEventListener('click', async () => {
   let current = '';
   try{
-    const r = await window.storage.get(STORAGE_KEY, false);
+    const r = await storage.get(STORAGE_KEY, false);
     if(r) current = r.value;
   }catch(e){}
   openSetup(current);
@@ -509,7 +525,7 @@ document.getElementById('refreshBtn').addEventListener('click', async () => {
   const btn = document.getElementById('refreshBtn');
   btn.classList.add('spin');
   try{
-    const r = await window.storage.get(STORAGE_KEY, false);
+    const r = await storage.get(STORAGE_KEY, false);
     if(r) await loadFromSheet(r.value);
   }catch(e){}
   setTimeout(() => btn.classList.remove('spin'), 500);
@@ -517,7 +533,11 @@ document.getElementById('refreshBtn').addEventListener('click', async () => {
 
 (async function init(){
   try{
-    const r = await window.storage.get(STORAGE_KEY, false);
+    let r = await storage.get(STORAGE_KEY, false);
+    if((!r || !r.value) && DEFAULT_CSV_URL){
+      await storage.set(STORAGE_KEY, DEFAULT_CSV_URL, false);
+      r = { value: DEFAULT_CSV_URL };
+    }
     if(r && r.value){
       document.getElementById('changeSourceBtn').style.display = 'inline';
       loadFromSheet(r.value);
