@@ -340,7 +340,7 @@
 
 <script>
 const STORAGE_KEY = 'sheet-csv-url';
-const DEFAULT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRTBjrk47KzG9Ebif6SVWse5xJONEYMl8nTI0839QgyO5UBP3gPo_KSlYyGfqhjXRYV8fPq82qL1toj/pub?output=csv';
+const DEFAULT_CSV_URL = 'https://docs.google.com/spreadsheets/d/1EGTRiZp58yiy-PlBx8PhADLJfA1R4e8YjAvCp-GUk9M/gviz/tq?tqx=out:csv&gid=0';
 let allLinks = [];
 
 const storage = {
@@ -534,7 +534,8 @@ document.getElementById('refreshBtn').addEventListener('click', async () => {
 (async function init(){
   try{
     let r = await storage.get(STORAGE_KEY, false);
-    if((!r || !r.value) && DEFAULT_CSV_URL){
+    const isOldDefault = r && r.value && r.value.includes('2PACX-1vRTBjrk47KzG9Ebif6SVWse5xJONEYMl8nTI0839QgyO5UBP3gPo');
+    if((!r || !r.value || isOldDefault) && DEFAULT_CSV_URL){
       await storage.set(STORAGE_KEY, DEFAULT_CSV_URL, false);
       r = { value: DEFAULT_CSV_URL };
     }
